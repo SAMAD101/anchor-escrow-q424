@@ -2,8 +2,15 @@ use anchor_lang::prelude::*;
 
 use anchor_spl::{
     associated_token::AssociatedToken,
-    token_interface::{transfer_checked, Mint, TokenAccount, TokenInterface, TransferChecked},
+    token_interface::{
+        transfer_checked,
+        Mint,
+        TokenAccount,
+        TokenInterface,
+        TransferChecked
+    },
 };
+
 use crate::Escrow;
 
 #[derive(Accounts)]
@@ -33,7 +40,6 @@ pub struct Make<'info> {
         associated_token::authority = escrow,
     )]
     pub vault: InterfaceAccount<'info, TokenAccount>,
-
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub token_program: Interface<'info, TokenInterface>,
     pub system_program: Program<'info, System>,
@@ -41,7 +47,6 @@ pub struct Make<'info> {
 
 impl<'info> Make<'info> {
     pub fn init_escrow(&mut self, seed: u64, recieve: u64, bumps: &MakeBumps) -> Result<()> {
-
         self.escrow.set_inner(Escrow {
             seed,
             maker: self.maker.key(),
@@ -54,15 +59,14 @@ impl<'info> Make<'info> {
     }
 
     pub fn deposit(&mut self, deposit: u64) -> Result<()> {
-
-        let tranfer_accounts = TransferChecked {
+        let transfer_accounts = TransferChecked {
             from: self.maker_ata_a.to_account_info(),
             mint: self.mint_a.to_account_info(),
             to: self.vault.to_account_info(),
             authority: self.maker.to_account_info()
         };
 
-        let cpi_ctx = CpiContext::new(self.token_program.to_account_info(), tranfer_accounts);
+        let cpi_ctx = CpiContext::new(self.token_program.to_account_info(), transfer_accounts);
 
         transfer_checked(cpi_ctx, deposit, self.mint_a.decimals)
     }

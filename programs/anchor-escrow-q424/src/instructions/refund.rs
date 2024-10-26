@@ -3,10 +3,16 @@ use anchor_lang::prelude::*;
 use anchor_spl::{
     associated_token::AssociatedToken,
     token_interface::{
-        close_account, transfer_checked, CloseAccount, Mint, TokenAccount, TokenInterface,
+        close_account,
+        transfer_checked,
+        CloseAccount,
+        Mint,
+        TokenAccount,
+        TokenInterface,
         TransferChecked,
     },
 };
+
 use crate::Escrow;
 
 #[derive(Accounts)]
@@ -29,14 +35,12 @@ pub struct Refund<'info> {
         bump = escrow.bump
     )]
     pub escrow: Account<'info, Escrow>,
-
     #[account(
         mut,
         associated_token::mint = mint_a,
         associated_token::authority = escrow,
     )]
     pub vault: InterfaceAccount<'info, TokenAccount>,
-
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub token_program: Interface<'info, TokenInterface>,
     pub system_program: Program<'info, System>,
@@ -58,9 +62,9 @@ impl<'info> Refund<'info> {
             authority: self.maker.to_account_info()
         };
 
-        let tranfer_cpi_ctx = CpiContext::new_with_signer(self.token_program.to_account_info(), transfer_accounts, &signer_seeds);
+        let transfer_cpi_ctx = CpiContext::new_with_signer(self.token_program.to_account_info(), transfer_accounts, &signer_seeds);
 
-        transfer_checked(tranfer_cpi_ctx, self.vault.amount, self.mint_a.decimals)?;
+        transfer_checked(transfer_cpi_ctx, self.vault.amount, self.mint_a.decimals)?;
 
         let close_accounts = CloseAccount {
             account: self.vault.to_account_info(),
@@ -71,6 +75,5 @@ impl<'info> Refund<'info> {
         let close_cpi_ctx = CpiContext::new_with_signer(self.token_program.to_account_info(), close_accounts, &signer_seeds);
 
         close_account(close_cpi_ctx)
-
     }
 }
